@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { SectionTitle, TableToggle } from "./common";
 import { recordIndex, reportMonths, reportRegions } from "./TrendChart";
 
-export function Heatmap({ report, meta, onFocus }: { report: TrendReport; meta?: Meta; onFocus: (l: string) => void }) {
+export function Heatmap({ report, meta, onFocus }: { report: TrendReport; meta?: Meta | undefined; onFocus: (l: string) => void }) {
   const [table, setTable] = useState(false);
   const months = reportMonths(report);
   const regions = reportRegions(report, meta);

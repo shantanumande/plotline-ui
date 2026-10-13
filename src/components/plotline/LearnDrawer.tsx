@@ -3,7 +3,7 @@ import { formatINR, formatMonth, formatPct, formatPctPoints } from "@/lib/format
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 export function LearnDrawer({ open, onOpenChange, meta, report }: {
-  open: boolean; onOpenChange: (v: boolean) => void; meta?: Meta; report: TrendReport | null;
+  open: boolean; onOpenChange: (v: boolean) => void; meta?: Meta | undefined; report: TrendReport | null;
 }) {
   const c = meta?.constants;
   const pct = (f?: number) => (f == null ? "—" : formatPct(f, 0).replace("+", ""));

@@ -4,7 +4,7 @@ export const LAKH = 100000;
 export const CRORE = 10000000;
 const MINUS = "−";
 
-export function formatINR(n: number | null | undefined, opts: { perSqft?: boolean } = {}): string {
+export function formatINR(n: number | null | undefined, opts: { perSqft?: boolean | undefined } = {}): string {
   if (n == null || Number.isNaN(n)) return "—";
   if (opts.perSqft) return `₹${Math.round(n).toLocaleString("en-IN")}/sqft`;
   const sign = n < 0 ? MINUS : "";
@@ -36,7 +36,7 @@ export function formatPctPoints(pct: number | null | undefined, digits = 2): str
 
 export function formatMonth(m: string | null | undefined, short = false): string {
   if (!m) return "—";
-  const [y, mo] = m.split("-");
+  const [y = "", mo = ""] = m.split("-");
   const name = MONTHS[Number(mo) - 1] ?? mo;
   return short ? `${name} ’${y.slice(2)}` : `${name} ${y}`;
 }
@@ -48,7 +48,7 @@ export function formatCount(n: number | null | undefined): string {
 
 // Calendar helpers (month arithmetic, not statistics).
 export const monthIndex = (m: string) => {
-  const [y, mo] = m.split("-").map(Number);
+  const [y = 0, mo = 1] = m.split("-").map(Number);
   return y * 12 + (mo - 1);
 };
 export const monthFromIndex = (i: number) =>

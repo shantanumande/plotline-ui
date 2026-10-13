@@ -32,7 +32,7 @@ export function ErrorPanel({ report }: { report: TrendReport }) {
   );
 }
 
-export function EmptyState({ meta, onExample }: { meta?: Meta; onExample: () => void }) {
+export function EmptyState({ meta, onExample }: { meta?: Meta | undefined; onExample: () => void }) {
   return (
     <section className="panel animate-rise p-8 text-center sm:p-12">
       <div className="eyebrow mb-3">Chennai · 2004 – 2015</div>
@@ -51,7 +51,7 @@ export function EmptyState({ meta, onExample }: { meta?: Meta; onExample: () => 
   );
 }
 
-export function LoadingState({ meta }: { meta?: Meta }) {
+export function LoadingState({ meta }: { meta?: Meta | undefined }) {
   const [step, setStep] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setStep((s) => (s < 6 ? s + 1 : s)), 220);

@@ -7,6 +7,7 @@ import { formatCount, formatINR, formatMonth, formatPct, windowMonths } from "@/
 import { SectionTitle, TableToggle, Val } from "./common";
 import { cn } from "@/lib/utils";
 
+type Row = { month: string; label: string; rec: TrendRecord | undefined; all: number | null; allSolid: number | null; listings: number; [k: string]: unknown };
 const LOC_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)"];
 
 export function reportMonths(report: TrendReport): string[] {
@@ -28,7 +29,7 @@ const usePrefersReduced = () =>
 export function TrendChart({
   report, meta, overlays, setOverlays,
 }: {
-  report: TrendReport; meta?: Meta; overlays: string[]; setOverlays: (o: string[]) => void;
+  report: TrendReport; meta?: Meta | undefined; overlays: string[]; setOverlays: (o: string[]) => void;
 }) {
   const [metric, setMetric] = useState<"psf" | "price">("psf");
   const [table, setTable] = useState(false);
@@ -50,7 +51,7 @@ export function TrendChart({
   const data = months.map((m) => {
     const r = idx.get(`${m}|ALL`);
     const v = r ? r[key] : null;
-    const row: Record<string, unknown> = {
+    const row: Row = {
       month: m, label: formatMonth(m, true), rec: r, all: v, allSolid: r?.low_sample ? null : v, listings: r?.listing_count ?? 0,
     };
     overlays.forEach((l) => (row[`loc_${l}`] = idx.get(`${m}|${l}`)?.[key] ?? null));
@@ -71,11 +72,11 @@ export function TrendChart({
     );
   };
 
-  const TooltipBody = ({ active, payload }: { active?: boolean; payload?: { payload: Record<string, unknown> }[] }) => {
+  const TooltipBody = ({ active, payload }: { active?: boolean; payload?: { payload: Row }[] }) => {
     if (!active || !payload?.length) return null;
-    const row = payload[0].payload;
-    const r = row.rec as TrendRecord | undefined;
-    const m = row.month as string;
+    const row = payload[0]!.payload;
+    const r = row.rec;
+    const m = row.month;
     return (
       <div className="max-w-xs rounded-lg border bg-popover p-3 text-xs shadow-soft">
         <div className="mb-1 font-semibold">{formatMonth(m)}</div>
@@ -190,7 +191,7 @@ export function TrendChart({
                 <Tooltip content={<TooltipBody />} cursor={{ fill: "var(--muted)" }} />
                 <Bar dataKey="listings" radius={[3, 3, 0, 0]} isAnimationActive={!reduced}>
                   {data.map((d) => (
-                    <Cell key={d.month as string} fill={(d.rec as TrendRecord | undefined)?.low_sample ? "var(--warn)" : "var(--muted-foreground)"} fillOpacity={0.55} />
+                    <Cell key={d.month} fill={d.rec?.low_sample ? "var(--warn)" : "var(--muted-foreground)"} fillOpacity={0.55} />
                   ))}
                 </Bar>
               </BarChart>

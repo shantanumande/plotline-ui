@@ -57,7 +57,7 @@ export function criteriaToForm(c: Criteria, base: FormState): FormState {
   return {
     ...base,
     localities: c.localities ?? [],
-    bhk: c.bhk && c.bhk.length === 1 ? c.bhk[0] : null,
+    bhk: c.bhk && c.bhk.length === 1 ? (c.bhk[0] ?? null) : null,
     windowEnd: c.window_end ?? base.windowEnd,
     budgetOn: !!c.price_band,
     budget: c.price_band ? [c.price_band[0] / LAKH, c.price_band[1] / LAKH] : base.budget,
@@ -111,7 +111,7 @@ export function explainChanges(report: TrendReport): string[] {
   for (const t of l1) out.push(describeL1(t));
 
   if (l2.length && eff) {
-    const first = l2[0].data as Record<string, unknown>;
+    const first = l2[0]!.data as { coverage_months?: number };
     const parts: string[] = [];
     if (typeof cin === "object") {
       if (JSON.stringify(cin.price_band) !== JSON.stringify(eff.price_band) && eff.price_band)
@@ -138,7 +138,7 @@ export function explainChanges(report: TrendReport): string[] {
 }
 
 function describeL1(t: TraceEvent): string {
-  const d = t.data as Record<string, unknown>;
+  const d = t.data as { issue?: string; before?: unknown; after?: unknown };
   if (d.issue === "band_inverted") {
     return `You entered the budget as ${band(d.before)}, so we swapped it to ${band(d.after)}.`;
   }

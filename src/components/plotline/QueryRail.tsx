@@ -286,7 +286,7 @@ function OptionalRange({
       </div>
       {on && (
         <div className="space-y-3">
-          <Slider min={min} max={max} step={step} value={sorted} onValueChange={(v) => setValue([v[0], v[1]])} aria-label={label} />
+          <Slider min={min} max={max} step={step} value={sorted} onValueChange={(v) => setValue([v[0] ?? min, v[1] ?? max])} aria-label={label} />
           <div className="flex items-center gap-2">
             <Input type="number" className="h-8 num" value={value[0]} aria-label={`${label} from`} onChange={(e) => setValue([Number(e.target.value), value[1]])} />
             <span className="text-muted-foreground">–</span>
@@ -321,7 +321,7 @@ function AdvancedSection({ form, up }: { form: FormState; up: (p: Partial<FormSt
           <div className="flex gap-1.5">
             {(["auto", "parallel", "consolidated"] as const).map((t) => (
               <Chip key={t} active={form.topology === t} onClick={() => up({ topology: t })}>
-                {t[0].toUpperCase() + t.slice(1)}
+                {t.charAt(0).toUpperCase() + t.slice(1)}
               </Chip>
             ))}
           </div>
