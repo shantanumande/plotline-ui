@@ -10,7 +10,7 @@ const NODE_W = 104, GAP = 18, Y = 92, H = 40;
 const nx = (i: number) => 10 + i * (NODE_W + GAP);
 const cx = (i: number) => nx(i) + NODE_W / 2;
 
-export function PipelineDiagram({ report, meta, activeStep }: { report?: TrendReport; meta?: Meta; activeStep?: number }) {
+export function PipelineDiagram({ report, meta, activeStep }: { report?: TrendReport | undefined; meta?: Meta | undefined; activeStep?: number }) {
   const l1 = report?.metadata.loop_counters.L1_repairs ?? 0;
   const l2 = report?.metadata.loop_counters.L2_attempts ?? 0;
   const l1cap = meta?.constants.l1_cap ?? 2;

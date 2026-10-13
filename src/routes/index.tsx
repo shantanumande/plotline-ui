@@ -182,7 +182,7 @@ function Plotline() {
   );
 }
 
-function HealthPill({ h, failed }: { h?: { llm_mode: string; contract_version: string; snapshot_sha256: string }; failed: boolean }) {
+function HealthPill({ h, failed }: { h?: { llm_mode: string; contract_version: string; snapshot_sha256: string } | undefined; failed: boolean }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>

@@ -32,7 +32,7 @@ export function ErrorPanel({ report }: { report: TrendReport }) {
   );
 }
 
-export function EmptyState({ meta, onExample }: { meta?: Meta; onExample: () => void }) {
+export function EmptyState({ meta, onExample }: { meta?: Meta | undefined; onExample: () => void }) {
   return (
     <section className="panel animate-rise p-8 text-center sm:p-12">
       <div className="eyebrow mb-3">Chennai · 2004 – 2015</div>

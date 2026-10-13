@@ -7,8 +7,8 @@ import reportAll from "@/mocks/report_all.json";
 import { monthFromIndex, monthIndex } from "./format";
 
 export const API_BASE: string =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) || "http://127.0.0.1:8000";
-const ENV_MOCKS = import.meta.env.VITE_USE_MOCKS !== "false";
+  (import.meta.env["VITE_API_BASE_URL"] as string | undefined) || "http://127.0.0.1:8000";
+const ENV_MOCKS = import.meta.env["VITE_USE_MOCKS"] !== "false";
 const MOCK_KEY = "plotline.useMocks";
 
 export function getUseMocks(): boolean {

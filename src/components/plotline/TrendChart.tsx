@@ -28,7 +28,7 @@ const usePrefersReduced = () =>
 export function TrendChart({
   report, meta, overlays, setOverlays,
 }: {
-  report: TrendReport; meta?: Meta; overlays: string[]; setOverlays: (o: string[]) => void;
+  report: TrendReport; meta?: Meta | undefined; overlays: string[]; setOverlays: (o: string[]) => void;
 }) {
   const [metric, setMetric] = useState<"psf" | "price">("psf");
   const [table, setTable] = useState(false);
