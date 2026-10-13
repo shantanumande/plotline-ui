@@ -3,7 +3,7 @@ import type { Meta, TrendReport } from "@/lib/types";
 import { formatMonth, formatPct } from "@/lib/format";
 import { SectionTitle } from "./common";
 
-export function Anomalies({ report, meta }: { report: TrendReport; meta?: Meta }) {
+export function Anomalies({ report, meta }: { report: TrendReport; meta?: Meta | undefined }) {
   const pct = meta?.constants.anomaly_pct ?? 0.12;
   return (
     <section className="panel p-5" aria-label="Anomalies and explanations">

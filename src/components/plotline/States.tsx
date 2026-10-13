@@ -51,7 +51,7 @@ export function EmptyState({ meta, onExample }: { meta?: Meta | undefined; onExa
   );
 }
 
-export function LoadingState({ meta }: { meta?: Meta }) {
+export function LoadingState({ meta }: { meta?: Meta | undefined }) {
   const [step, setStep] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setStep((s) => (s < 6 ? s + 1 : s)), 220);

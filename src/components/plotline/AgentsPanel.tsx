@@ -120,7 +120,7 @@ function TraceRow({ t }: { t: TraceEvent }) {
   );
 }
 
-export function AgentsPanel({ report, meta }: { report: TrendReport; meta?: Meta }) {
+export function AgentsPanel({ report, meta }: { report: TrendReport; meta?: Meta | undefined }) {
   const fired = report.metadata.loop_counters.L1_repairs + report.metadata.loop_counters.L2_attempts > 0;
   const [open, setOpen] = useState(fired || report.status === "error");
   return (
