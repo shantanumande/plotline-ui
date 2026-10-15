@@ -1,7 +1,9 @@
 import type { Meta, SummaryStat, TrendReport } from "@/lib/types";
-import { formatCount, formatINR, formatPctPoints } from "@/lib/format";
+import { formatCount, formatINR, formatMonth, formatPctPoints } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { DirectionBadge } from "./common";
+import { recordIndex, reportMonths } from "./TrendChart";
 
 function StatCard({ title, stat, perSqft, hero }: { title: string; stat: SummaryStat; perSqft?: boolean; hero?: boolean }) {
   return (
@@ -14,7 +16,7 @@ function StatCard({ title, stat, perSqft, hero }: { title: string; stat: Summary
         <>
           <div
             className={cn(
-              "mt-3 font-serif num",
+              "mt-3 font-semibold tracking-tight num",
               hero ? "text-5xl" : "text-4xl",
               stat.direction === "up" ? "text-up" : stat.direction === "down" ? "text-down" : "text-foreground",
             )}
@@ -40,27 +42,52 @@ export function HeadlineCards({ report, meta }: { report: TrendReport; meta: Met
   const minN = meta?.constants.min_bucket_n ?? 5;
   const covered = Math.round(report.coverage_score * W);
   const low = covered < need;
+  const idx = recordIndex(report);
+  const months = reportMonths(report).map((m) => ({ m, r: idx.get(`${m}|ALL`) }));
+  // Bar heights are a display scale only, like the heatmap colours.
+  const maxN = Math.max(minN, ...months.map((x) => x.r?.n_in_bucket ?? 0));
+  const h = (n: number) => `${Math.max(8, (n / maxN) * 100)}%`;
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1.25fr_0.7fr_1fr]">
       <StatCard title="Median price" stat={s?.price ?? null} />
       <StatCard title="Median ₹ / sqft" stat={s?.price_per_sqft ?? null} perSqft hero />
       <div className="panel p-5">
         <div className="eyebrow">Sales analysed</div>
-        <div className="mt-3 font-serif text-4xl num">{formatCount(s?.n_rows)}</div>
+        <div className="mt-3 text-4xl font-semibold tracking-tight num">{formatCount(s?.n_rows)}</div>
         <div className="mt-2 text-sm text-muted-foreground">recorded sales</div>
       </div>
       <div className="panel p-5">
         <div className="eyebrow">Coverage</div>
-        <div className="relative mt-4" role="img" aria-label={`${covered} of ${W} months had at least ${minN} sales`}>
-          <div className="flex gap-1">
-            {Array.from({ length: W }, (_, i) => (
-              <div key={i} className={cn("h-6 flex-1 rounded-sm", i < covered ? (low ? "bg-warn" : "bg-primary") : "bg-muted")} />
-            ))}
-          </div>
-          <div className="absolute -bottom-1.5 -top-1.5 w-0.5 bg-foreground" style={{ left: `calc(${(need / W) * 100}% - 1px)` }} aria-hidden />
+        <div className="relative mt-3 flex h-12 items-end gap-1" role="img"
+          aria-label={`${covered} of ${W} months had at least ${minN} sales`}>
+          {months.map(({ m, r }) => {
+            const n = r?.n_in_bucket ?? 0;
+            return (
+              <Tooltip key={m}>
+                <TooltipTrigger asChild>
+                  <div className="flex h-full flex-1 items-end" aria-hidden>
+                    <div
+                      className={cn("w-full rounded-sm", n === 0 ? "bg-muted" : r?.low_sample ? "bg-volume-low" : "bg-volume")}
+                      style={{ height: n === 0 ? "8%" : h(n) }}
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="num">
+                  {formatMonth(m)}: {formatCount(n)} sale{n === 1 ? "" : "s"}
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
+          <div className="pointer-events-none absolute inset-x-0 z-10 border-t-[1.5px] border-dashed border-foreground"
+            style={{ bottom: `${(minN / maxN) * 100}%` }} aria-hidden />
         </div>
         <div className="mt-3 text-sm num">
           {covered} of {W} months had ≥ {minN} sales
+        </div>
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-volume" /> enough sales</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-volume-low" /> fewer than {minN}</span>
+          <span className="inline-flex items-center gap-1"><span className="w-3 border-t-[1.5px] border-dashed border-foreground" /> {minN}-sale line</span>
         </div>
         {low && <div className="mt-1 text-xs font-semibold text-warn">Low coverage (needs {need})</div>}
       </div>

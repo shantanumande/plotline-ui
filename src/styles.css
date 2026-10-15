@@ -5,9 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Fraunces", ui-serif, Georgia, serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Source Serif 4", ui-serif, Georgia, serif;
+  --font-mono: "Source Code Pro", ui-monospace, monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -44,6 +44,11 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-volume: var(--volume);
+  --color-volume-low: var(--volume-low);
+  /* Selected state for form controls: ink, so navy stays reserved for data and primary actions. */
+  --color-control: var(--foreground);
+  --color-control-foreground: var(--background);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -52,90 +57,99 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --shadow-soft: 0 1px 2px oklch(0.22 0.004 85 / 4%), 0 4px 16px oklch(0.22 0.004 85 / 4%);
+  --shadow-soft: 0 1px 2px oklch(0.2 0.02 255 / 6%), 0 4px 12px oklch(0.2 0.02 255 / 5%);
 }
 
 :root {
-  --radius: 0.75rem;
-  --background: oklch(0.982 0.005 75);
-  --foreground: oklch(0.22 0.004 85);
-  --card: oklch(0.995 0.003 75);
-  --card-foreground: oklch(0.22 0.004 85);
-  --popover: oklch(0.995 0.003 75);
-  --popover-foreground: oklch(0.22 0.004 85);
-  --primary: oklch(0.511 0.086 186.4);
-  --primary-foreground: oklch(0.985 0.005 180);
-  --secondary: oklch(0.955 0.008 75);
-  --secondary-foreground: oklch(0.22 0.004 85);
-  --muted: oklch(0.955 0.008 75);
-  --muted-foreground: oklch(0.48 0.01 80);
-  --accent: oklch(0.94 0.025 185);
-  --accent-foreground: oklch(0.36 0.07 186);
-  --accent-soft: oklch(0.94 0.025 185);
-  --up: oklch(0.5 0.1 165);
-  --down: oklch(0.553 0.174 38.4);
-  --flat: oklch(0.48 0.01 80);
-  --warn: oklch(0.6 0.13 70);
-  --warn-soft: oklch(0.95 0.05 85);
-  --destructive: oklch(0.553 0.174 38.4);
+  --radius: 0.375rem;
+  --background: oklch(0.985 0.002 250);
+  --foreground: oklch(0.2 0.02 255);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.02 255);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.02 255);
+  --primary: oklch(0.36 0.09 258);
+  --primary-foreground: oklch(0.98 0.005 258);
+  --secondary: oklch(0.955 0.005 250);
+  --secondary-foreground: oklch(0.2 0.02 255);
+  --muted: oklch(0.955 0.005 250);
+  --muted-foreground: oklch(0.47 0.015 255);
+  --accent: oklch(0.95 0.02 258);
+  --accent-foreground: oklch(0.36 0.09 258);
+  --accent-soft: oklch(0.95 0.02 258);
+  /* Price direction from a buyer's view: rising is orange-red, falling is green. Errors keep a deeper brick red. */
+  --up: oklch(0.6 0.17 42);
+  --down: oklch(0.58 0.13 150);
+  --flat: oklch(0.47 0.015 255);
+  --warn: oklch(0.72 0.15 66);
+  --warn-soft: oklch(0.96 0.045 90);
+  --destructive: oklch(0.5 0.18 25);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.9 0.008 75);
-  --input: oklch(0.88 0.008 75);
-  --ring: oklch(0.511 0.086 186.4);
-  --chart-1: oklch(0.6 0.08 250);
-  --chart-2: oklch(0.62 0.1 40);
-  --chart-3: oklch(0.6 0.09 130);
-  --chart-4: oklch(0.58 0.09 330);
-  --chart-5: oklch(0.65 0.09 85);
-  --sidebar: oklch(0.975 0.006 75);
-  --sidebar-foreground: oklch(0.22 0.004 85);
-  --sidebar-primary: oklch(0.511 0.086 186.4);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.955 0.008 75);
-  --sidebar-accent-foreground: oklch(0.22 0.004 85);
-  --sidebar-border: oklch(0.9 0.008 75);
-  --sidebar-ring: oklch(0.511 0.086 186.4);
+  --border: oklch(0.88 0.006 250);
+  --input: oklch(0.86 0.006 250);
+  --ring: oklch(0.36 0.09 258);
+  /* Chart hues avoid primary, up, down, warn and destructive; lightness varies for separation. */
+  --chart-1: oklch(0.48 0.15 300);
+  --chart-2: oklch(0.58 0.1 200);
+  --chart-3: oklch(0.58 0.17 350);
+  --chart-4: oklch(0.55 0.1 105);
+  --chart-5: oklch(0.5 0.07 60);
+  /* Sales-count bars (listings under the trend chart, coverage tile); -low marks months under the minimum. */
+  --volume: oklch(0.6 0.09 245);
+  --volume-low: var(--warn);
+  --sidebar: oklch(0.975 0.003 250);
+  --sidebar-foreground: oklch(0.2 0.02 255);
+  --sidebar-primary: oklch(0.36 0.09 258);
+  --sidebar-primary-foreground: oklch(0.98 0.005 258);
+  --sidebar-accent: oklch(0.955 0.005 250);
+  --sidebar-accent-foreground: oklch(0.2 0.02 255);
+  --sidebar-border: oklch(0.88 0.006 250);
+  --sidebar-ring: oklch(0.36 0.09 258);
 }
 
+/* Warm charcoal neutrals (near-zero chroma) with one soft-blue accent. */
 .dark {
-  --background: oklch(0.19 0.006 85);
-  --foreground: oklch(0.94 0.006 80);
-  --card: oklch(0.23 0.006 85);
-  --card-foreground: oklch(0.94 0.006 80);
-  --popover: oklch(0.23 0.006 85);
-  --popover-foreground: oklch(0.94 0.006 80);
-  --primary: oklch(0.7 0.1 186);
-  --primary-foreground: oklch(0.18 0.02 186);
-  --secondary: oklch(0.28 0.006 85);
-  --secondary-foreground: oklch(0.94 0.006 80);
-  --muted: oklch(0.28 0.006 85);
-  --muted-foreground: oklch(0.7 0.01 80);
-  --accent: oklch(0.3 0.04 186);
-  --accent-foreground: oklch(0.85 0.06 186);
-  --accent-soft: oklch(0.3 0.04 186);
-  --up: oklch(0.72 0.11 165);
-  --down: oklch(0.7 0.15 40);
-  --flat: oklch(0.7 0.01 80);
-  --warn: oklch(0.78 0.13 75);
-  --warn-soft: oklch(0.32 0.05 75);
-  --destructive: oklch(0.7 0.15 40);
-  --destructive-foreground: oklch(0.18 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.7 0.1 186);
-  --chart-1: oklch(0.72 0.08 250);
-  --chart-2: oklch(0.72 0.1 40);
-  --chart-3: oklch(0.72 0.09 130);
-  --chart-4: oklch(0.72 0.09 330);
-  --chart-5: oklch(0.75 0.09 85);
-  --sidebar: oklch(0.21 0.006 85);
-  --sidebar-foreground: oklch(0.94 0.006 80);
-  --sidebar-primary: oklch(0.7 0.1 186);
-  --sidebar-primary-foreground: oklch(0.18 0 0);
-  --sidebar-accent: oklch(0.28 0.006 85);
-  --sidebar-accent-foreground: oklch(0.94 0.006 80);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.7 0.1 186);
+  --background: oklch(0.225 0.003 106);
+  --foreground: oklch(0.975 0.006 95);
+  --card: oklch(0.262 0.003 106);
+  --card-foreground: oklch(0.975 0.006 95);
+  --popover: oklch(0.262 0.003 106);
+  --popover-foreground: oklch(0.975 0.006 95);
+  --primary: oklch(0.72 0.12 252);
+  --primary-foreground: oklch(0.2 0.03 255);
+  --secondary: oklch(0.3 0.004 100);
+  --secondary-foreground: oklch(0.975 0.006 95);
+  --muted: oklch(0.3 0.004 100);
+  --muted-foreground: oklch(0.74 0.005 95);
+  --accent: oklch(0.32 0.025 250);
+  --accent-foreground: oklch(0.88 0.06 252);
+  --accent-soft: oklch(0.32 0.025 250);
+  --up: oklch(0.76 0.15 48);
+  --down: oklch(0.8 0.13 150);
+  --flat: oklch(0.74 0.005 95);
+  --warn: oklch(0.86 0.14 95);
+  --warn-soft: oklch(0.29 0.035 95);
+  --destructive: oklch(0.7 0.16 25);
+  --destructive-foreground: oklch(0.2 0 0);
+  --border: oklch(0.93 0.01 100 / 12%);
+  --input: oklch(0.93 0.01 100 / 18%);
+  --ring: oklch(0.72 0.12 252);
+  --chart-1: oklch(0.74 0.13 300);
+  --chart-2: oklch(0.78 0.09 200);
+  --chart-3: oklch(0.74 0.15 350);
+  --chart-4: oklch(0.8 0.1 105);
+  --chart-5: oklch(0.74 0.06 60);
+  /* Same hue as the dark-mode primary, muted, so bars sit with the trend line and heatmap. */
+  --volume: oklch(0.52 0.07 252);
+  --volume-low: oklch(0.8 0.12 95);
+  --sidebar: oklch(0.195 0.002 70);
+  --sidebar-foreground: oklch(0.975 0.006 95);
+  --sidebar-primary: oklch(0.72 0.12 252);
+  --sidebar-primary-foreground: oklch(0.2 0.03 255);
+  --sidebar-accent: oklch(0.262 0.003 106);
+  --sidebar-accent-foreground: oklch(0.975 0.006 95);
+  --sidebar-border: oklch(0.93 0.01 100 / 12%);
+  --sidebar-ring: oklch(0.72 0.12 252);
 }
 
 @layer base {
@@ -146,12 +160,12 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    font-feature-settings: "tnum" 1, "cv11" 1;
+    font-feature-settings: "tnum" 1;
     -webkit-font-smoothing: antialiased;
   }
   h1, h2, h3 {
     font-family: var(--font-serif);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
   }
 }
 
@@ -197,6 +211,52 @@
 }
 @utility animate-rise {
   animation: rise 0.4s ease-out both;
+}
+
+/* A highlight that sweeps across text while work is running. */
+@keyframes shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: 0% 0; }
+}
+@utility shimmer-text {
+  color: transparent;
+  background-image: linear-gradient(
+    100deg,
+    var(--shimmer-base, var(--color-muted-foreground)) 0%,
+    var(--shimmer-base, var(--color-muted-foreground)) 40%,
+    var(--shimmer-highlight, var(--color-foreground)) 50%,
+    var(--shimmer-base, var(--color-muted-foreground)) 60%,
+    var(--shimmer-base, var(--color-muted-foreground)) 100%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* Theme switch: a short cross-fade (View Transitions), or a colour transition as a fallback. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+  animation-timing-function: ease;
+}
+.theme-fading,
+.theme-fading *,
+.theme-fading *::before,
+.theme-fading *::after {
+  transition:
+    background-color 0.35s ease,
+    border-color 0.35s ease,
+    color 0.35s ease,
+    fill 0.35s ease,
+    stroke 0.35s ease !important;
+}
+
+/* Trend chart hover highlight fades rather than snapping. */
+.trend-lines .recharts-line-curve,
+.trend-lines .recharts-line-dots circle,
+.trend-lines .recharts-line-dots g {
+  transition: stroke-opacity 0.25s ease, opacity 0.25s ease, stroke-width 0.2s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {

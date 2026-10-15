@@ -51,7 +51,7 @@ export function Chip({
   onClick?: () => void;
   children: ReactNode;
   disabled?: boolean;
-  title?: string;
+  title?: string | undefined;
 }) {
   return (
     <button
@@ -63,8 +63,8 @@ export function Chip({
       className={cn(
         "rounded-full border px-3 py-1 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50",
         active
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-border bg-card text-foreground hover:border-primary/50 hover:bg-accent",
+          ? "border-control bg-control text-control-foreground"
+          : "border-border bg-card text-foreground hover:border-foreground/40 hover:bg-muted",
       )}
     >
       {children}

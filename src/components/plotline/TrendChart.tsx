@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
   Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
@@ -33,6 +33,29 @@ export function TrendChart({
 }) {
   const [metric, setMetric] = useState<"psf" | "price">("psf");
   const [table, setTable] = useState(false);
+  // The series under the pointer ("ALL" or a locality); the others fade so it can be read on its own.
+  const [hot, setHotNow] = useState<string | null>(null);
+  // Leaving a line waits a moment before un-fading, so brushing past empty space doesn't flicker.
+  const unhover = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelUnhover = () => {
+    if (unhover.current) clearTimeout(unhover.current);
+    unhover.current = null;
+  };
+  const setHot = (k: string | null) => {
+    cancelUnhover();
+    if (k != null) setHotNow(k);
+    else unhover.current = setTimeout(() => setHotNow(null), 400);
+  };
+  useEffect(() => cancelUnhover, []);
+  // A highlight only counts while its line is on screen: deselecting a hovered chip never fires mouseleave.
+  const shown = hot === "ALL" || (hot != null && overlays.includes(hot)) ? hot : null;
+  const fade = (k: string) => shown != null && shown !== k;
+  const hover = (k: string) => ({
+    onMouseEnter: () => setHot(k),
+    onMouseLeave: () => setHot(null),
+    onFocus: () => setHot(k),
+    onBlur: () => setHot(null),
+  });
   const reduced = usePrefersReduced();
   const months = reportMonths(report);
   const regions = reportRegions(report, meta);
@@ -67,7 +90,7 @@ export function TrendChart({
     if (p.cx == null || p.cy == null || p.payload?.all == null) return <g />;
     const low = p.payload.rec?.low_sample;
     return (
-      <circle cx={p.cx} cy={p.cy} r={low ? 4.5 : 3.5} strokeWidth={2}
+      <circle cx={p.cx} cy={p.cy} r={low ? 4.5 : 3.5} strokeWidth={2} opacity={fade("ALL") ? 0.15 : 1}
         style={{ stroke: low ? "var(--warn)" : "var(--primary)", fill: low ? "var(--card)" : "var(--primary)" }} />
     );
   };
@@ -86,12 +109,15 @@ export function TrendChart({
           <span className="text-muted-foreground">Listings</span><span>{formatCount(r?.listing_count)}</span>
           <span className="text-muted-foreground">MoM ₹/sqft</span><span>{formatPct(r?.pct_change_price_per_sqft)}</span>
           {overlays.map((l) => (
-            <><span key={`k${l}`} className="text-muted-foreground">{l}</span><span key={`v${l}`}>{fmt(row[`loc_${l}`] as number | null)}</span></>
+            <Fragment key={l}>
+              <span className={shown === l ? "font-semibold text-foreground" : "text-muted-foreground"}>{l}</span>
+              <span className={cn(shown === l && "font-semibold")}>{fmt(row[`loc_${l}`] as number | null)}</span>
+            </Fragment>
           ))}
         </div>
         {r?.median_price_per_sqft == null && <div className="mt-1.5 text-muted-foreground">No median: not enough sales.</div>}
         {r?.low_sample && r.median_price_per_sqft != null && (
-          <div className="mt-1.5 font-medium text-warn">Only {r.n_in_bucket} sales — treat with caution</div>
+          <div className="mt-1.5 font-medium text-warn">Only {r.n_in_bucket} sales</div>
         )}
         {diag.get(m)?.map((d) => (
           <div key={d.text} className="mt-1.5 border-t pt-1.5">
@@ -111,7 +137,7 @@ export function TrendChart({
           <div role="group" aria-label="Metric" className="flex overflow-hidden rounded-lg border text-sm">
             {(["psf", "price"] as const).map((k) => (
               <button key={k} type="button" aria-pressed={metric === k} onClick={() => setMetric(k)}
-                className={cn("px-3 py-1", metric === k ? "bg-primary text-primary-foreground" : "bg-card hover:bg-accent")}>
+                className={cn("px-3 py-1", metric === k ? "bg-control text-control-foreground" : "bg-card hover:bg-muted")}>
                 {k === "psf" ? "₹ / sqft" : "Median price"}
               </button>
             ))}
@@ -119,11 +145,14 @@ export function TrendChart({
         }
       />
       <div className="mb-3 flex flex-wrap items-center gap-1.5 text-xs">
-        <span className="mr-1 inline-flex items-center gap-1.5 font-semibold"><span className="h-0.5 w-5 bg-primary" /> All selected</span>
+        <span tabIndex={0} {...hover("ALL")} className="mr-1 inline-flex cursor-default items-center gap-1.5 font-semibold">
+          <span className="h-0.5 w-5 bg-primary" /> All selected
+        </span>
         {regions.map((l) => {
           const i = overlays.indexOf(l);
           return (
             <button key={l} type="button" aria-pressed={i >= 0} onClick={() => toggle(l)} disabled={i < 0 && overlays.length >= 4}
+              {...(i >= 0 ? hover(l) : {})}
               className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 disabled:opacity-40", i >= 0 ? "bg-muted" : "bg-card hover:bg-accent")}>
               <span className="h-2 w-2 rounded-full" style={{ background: i >= 0 ? LOC_COLORS[i] : "var(--border)" }} />{l}
             </button>
@@ -159,7 +188,7 @@ export function TrendChart({
         </div>
       ) : (
         <div role="img" aria-label="Line chart of the monthly median with listing counts below">
-          <div className="h-[340px]">
+          <div className="trend-lines h-[340px]">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={data} syncId="trend" margin={{ top: 24, right: 12, bottom: 0, left: 8 }}>
                 <CartesianGrid vertical={false} stroke="var(--border)" />
@@ -172,13 +201,21 @@ export function TrendChart({
                     label={{ value: "⚑", position: "top", fill: "var(--warn)", fontSize: 14 }} />
                 ))}
                 {overlays.map((l, i) => (
-                  <Line key={l} dataKey={`loc_${l}`} stroke={LOC_COLORS[i]} strokeWidth={1.5} dot={{ r: 2 }} connectNulls={false}
-                    isAnimationActive={!reduced} name={l} />
+                  <Line key={l} dataKey={`loc_${l}`} stroke={LOC_COLORS[i]} strokeWidth={shown === l ? 2.75 : 1.5}
+                    strokeOpacity={fade(l) ? 0.15 : 1}
+                    dot={{ r: shown === l ? 3 : 2, fill: LOC_COLORS[i], opacity: fade(l) ? 0.15 : 1 }}
+                    activeDot={fade(l) ? false : { r: 4, fill: LOC_COLORS[i] }} connectNulls={false} isAnimationActive={!reduced} name={l} />
                 ))}
-                <Line dataKey="all" stroke="var(--primary)" strokeWidth={2} strokeDasharray="4 4" strokeOpacity={0.7}
-                  dot={<Dot />} activeDot={{ r: 5 }} connectNulls={false} isAnimationActive={!reduced} />
-                <Line dataKey="allSolid" stroke="var(--primary)" strokeWidth={3} dot={false} activeDot={false}
+                <Line dataKey="all" stroke="var(--primary)" strokeWidth={2} strokeDasharray="4 4" strokeOpacity={fade("ALL") ? 0.12 : 0.7}
+                  dot={<Dot />} activeDot={fade("ALL") ? false : { r: 5 }} connectNulls={false} isAnimationActive={!reduced} />
+                <Line dataKey="allSolid" stroke="var(--primary)" strokeWidth={3} strokeOpacity={fade("ALL") ? 0.1 : 1} dot={false} activeDot={false}
                   connectNulls={false} isAnimationActive={!reduced} />
+                {/* Wide invisible copies of each line, drawn last, so a thin line is easy to hover. */}
+                {[...overlays.map((l) => ({ k: l, key: `loc_${l}` })), { k: "ALL", key: "all" }].map(({ k, key }) => (
+                  <Line key={`hit-${k}`} dataKey={key} stroke="var(--foreground)" strokeOpacity={0} strokeWidth={14}
+                    dot={false} activeDot={false} connectNulls={false} isAnimationActive={false} legendType="none"
+                    onMouseEnter={() => setHot(k)} onMouseLeave={() => setHot(null)} />
+                ))}
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -188,10 +225,11 @@ export function TrendChart({
                 <XAxis dataKey="label" hide />
                 <YAxis width={78} tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} allowDecimals={false}
                   label={{ value: "listings", angle: -90, position: "insideLeft", fontSize: 10, fill: "var(--muted-foreground)" }} />
-                <Tooltip content={<TooltipBody />} cursor={{ fill: "var(--muted)" }} />
+                {/* Only the highlight band here; the line chart above shows the tooltip. */}
+                <Tooltip content={() => null} cursor={{ fill: "var(--muted)" }} />
                 <Bar dataKey="listings" radius={[3, 3, 0, 0]} isAnimationActive={!reduced}>
                   {data.map((d) => (
-                    <Cell key={d.month} fill={d.rec?.low_sample ? "var(--warn)" : "var(--muted-foreground)"} fillOpacity={0.55} />
+                    <Cell key={d.month} fill={d.rec?.low_sample ? "var(--volume-low)" : "var(--volume)"} />
                   ))}
                 </Bar>
               </BarChart>

@@ -1,5 +1,5 @@
 import type { Criteria, RunRequest, TraceEvent, TrendReport } from "./types";
-import { formatINR, formatMonth, LAKH, windowMonths } from "./format";
+import { formatINR, formatMonth, formatSaleCond, LAKH, windowMonths } from "./format";
 
 export type FormState = {
   localities: string[]; // empty = all
@@ -77,7 +77,7 @@ export function criteriaChips(c: Criteria): string[] {
   }
   if (c.price_band) chips.push(`${formatINR(c.price_band[0])} – ${formatINR(c.price_band[1])}`);
   if (c.sqft_range) chips.push(`${c.sqft_range[0].toLocaleString("en-IN")}–${c.sqft_range[1].toLocaleString("en-IN")} sqft`);
-  if (c.sale_cond) chips.push(c.sale_cond.join(", "));
+  if (c.sale_cond) chips.push(c.sale_cond.map(formatSaleCond).join(", "));
   return chips;
 }
 
@@ -93,7 +93,7 @@ const sqft = (b: unknown) => (Array.isArray(b) ? `${b[0]}–${b[1]} sqft` : "non
 const FIELD_LABEL: Record<string, string> = {
   price_band: "budget",
   sqft_range: "size range",
-  sale_cond: "sale conditions",
+  sale_cond: "sale types",
   localities: "localities",
   bhk: "BHK",
   window_end: "window",
@@ -119,7 +119,7 @@ export function explainChanges(report: TrendReport): string[] {
       if (JSON.stringify(cin.sqft_range) !== JSON.stringify(eff.sqft_range))
         parts.push(eff.sqft_range ? `the size range to ${sqft(eff.sqft_range)}` : "the size range (removed)");
       if (JSON.stringify(cin.sale_cond) !== JSON.stringify(eff.sale_cond))
-        parts.push(eff.sale_cond ? `sale conditions to ${eff.sale_cond.join(", ")}` : "sale conditions (removed)");
+        parts.push(eff.sale_cond ? `sale types to ${eff.sale_cond.map(formatSaleCond).join(", ")}` : "sale types (removed)");
     }
     const what = parts.length ? parts.join(" and ") : "the soft filters";
     out.push(

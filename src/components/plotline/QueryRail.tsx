@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
-import { ChevronDown, Clock, Sparkles, SlidersHorizontal } from "lucide-react";
+import { BookOpen, ChevronDown, Clock, Sparkles, SlidersHorizontal } from "lucide-react";
 import type { Health, Meta, RunRequest } from "@/lib/types";
 import type { FormState } from "@/lib/criteria";
 import { advanced, formToRequest } from "@/lib/criteria";
 import type { RecentRun } from "@/lib/recent";
-import { formatMonth, monthFromIndex, monthIndex, windowMonths } from "@/lib/format";
+import { formatMonth, formatSaleCond, monthFromIndex, monthIndex, saleCondHint, windowMonths } from "@/lib/format";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,6 +36,7 @@ export function QueryRail({
   loading,
   onRun,
   recent,
+  onLearn,
 }: {
   meta: Meta | undefined;
   health: Health | undefined;
@@ -48,6 +49,7 @@ export function QueryRail({
   loading: boolean;
   onRun: (r: RunRequest) => void;
   recent: RecentRun[];
+  onLearn: () => void;
 }) {
   const llmOff = health?.llm_mode === "off";
   const up = (p: Partial<FormState>) => setForm({ ...form, ...p });
@@ -73,7 +75,7 @@ export function QueryRail({
                   </TabsTrigger>
                 </span>
               </TooltipTrigger>
-              <TooltipContent>Plain-English search is off on this server (LLM_MODE=off).</TooltipContent>
+              <TooltipContent>Plain-English search isn't available on this server. Use Build instead.</TooltipContent>
             </Tooltip>
           ) : (
             <TabsTrigger value="ask">
@@ -119,8 +121,22 @@ export function QueryRail({
       <AdvancedSection form={form} up={up} />
 
       <Button size="lg" className="w-full" disabled={!meta || loading || (tab === "ask" && !nl.trim())} onClick={submit}>
-        {loading ? "Analysing…" : "Analyse trend"}
+        {loading ? (
+          <span className="shimmer-text [--shimmer-base:color-mix(in_oklch,var(--color-primary-foreground)_60%,transparent)] [--shimmer-highlight:var(--color-primary-foreground)]">
+            Analysing…
+          </span>
+        ) : (
+          "Analyse trend"
+        )}
       </Button>
+
+      <button
+        type="button"
+        onClick={onLearn}
+        className="-mt-2 inline-flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+      >
+        <BookOpen className="h-3.5 w-3.5" /> Understand the terms
+      </button>
 
       {recent.length > 0 && (
         <div>
@@ -198,7 +214,7 @@ function BuildForm({ meta, form, up }: { meta: Meta; form: FormState; up: (p: Pa
               aria-pressed={form.bhk === b}
               onClick={() => up({ bhk: b })}
               className={`py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${
-                form.bhk === b ? "bg-primary text-primary-foreground" : "bg-card hover:bg-accent"
+                form.bhk === b ? "bg-control text-control-foreground" : "bg-card hover:bg-muted"
               }`}
             >
               {b ?? "Any"}
@@ -252,17 +268,18 @@ function BuildForm({ meta, form, up }: { meta: Meta; form: FormState; up: (p: Pa
         step={50}
       />
 
-      <Field label="Sale condition (optional)">
+      <Field label="Type of sale (optional)">
         <div className="flex flex-wrap gap-1.5">
           {meta.sale_conds.map((s) => (
             <Chip
               key={s}
+              title={saleCondHint(s)}
               active={form.saleConds.includes(s)}
               onClick={() =>
                 up({ saleConds: form.saleConds.includes(s) ? form.saleConds.filter((x) => x !== s) : [...form.saleConds, s] })
               }
             >
-              {s}
+              {formatSaleCond(s)}
             </Chip>
           ))}
         </div>

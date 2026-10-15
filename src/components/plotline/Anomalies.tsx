@@ -20,7 +20,7 @@ export function Anomalies({ report, meta }: { report: TrendReport; meta?: Meta |
             const scale = jump ? Math.max(Math.abs(a.value), a.threshold) * 1.15 : 1;
             return (
               <li key={`${a.month}-${a.kind}`} className="grid gap-2 py-3 sm:grid-cols-[110px_130px_1fr]">
-                <div className="font-serif text-lg num">{formatMonth(a.month)}</div>
+                <div className="text-lg font-semibold num">{formatMonth(a.month)}</div>
                 <div>
                   <span className="inline-flex items-center gap-1 rounded-full bg-warn-soft px-2 py-0.5 text-xs font-semibold">
                     <Flag className="h-3 w-3 text-warn" /> {jump ? "Price jump" : "Listings drop"}

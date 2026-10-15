@@ -47,7 +47,7 @@ export function Heatmap({ report, meta, onFocus }: { report: TrendReport; meta?:
                   return (
                     <td key={m} title={`${l}, ${formatMonth(m)}: ${formatINR(v, { perSqft: true })} · ${r!.n_in_bucket} sales${r!.low_sample ? " (low sample)" : ""}`}
                       className={cn("relative h-9 min-w-14 rounded text-center", r!.low_sample && "hatch")}
-                      style={table ? undefined : { background: `color-mix(in oklch, var(--primary) ${Math.round(10 + k * 80)}%, var(--card))`, color: k > 0.55 ? "var(--primary-foreground)" : "var(--foreground)" }}>
+                      style={table ? undefined : { background: `color-mix(in oklab, var(--primary) ${Math.round(10 + k * 80)}%, var(--card))`, color: k > 0.55 ? "var(--primary-foreground)" : "var(--foreground)" }}>
                       <span className="relative">{Math.round(v).toLocaleString("en-IN")}</span>
                     </td>
                   );

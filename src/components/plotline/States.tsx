@@ -4,7 +4,6 @@ import type { Meta, TrendReport } from "@/lib/types";
 import { API_BASE } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PipelineDiagram } from "./AgentsPanel";
 import { TimelineScrubber } from "./TimelineScrubber";
 
 const ERROR_COPY: Record<string, string> = {
@@ -19,9 +18,9 @@ const ERROR_COPY: Record<string, string> = {
 export function ErrorPanel({ report }: { report: TrendReport }) {
   const e = report.error;
   return (
-    <section className="panel animate-rise border-down/30 p-5" role="alert">
+    <section className="panel animate-rise border-destructive/30 p-5" role="alert">
       <div className="flex items-start gap-3">
-        <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-down" />
+        <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
         <div>
           <h2 className="text-xl font-medium">{(e && ERROR_COPY[e.code]) ?? "The analysis couldn't run."}</h2>
           {e && <p className="mt-1 text-sm text-muted-foreground">{e.message}</p>}
@@ -51,17 +50,32 @@ export function EmptyState({ meta, onExample }: { meta?: Meta | undefined; onExa
   );
 }
 
-export function LoadingState({ meta }: { meta?: Meta | undefined }) {
-  const [step, setStep] = useState(0);
+// The backend returns one report at the end with no progress updates, so this view never
+// names a stage. It shows one status line, the elapsed time, and a hint once a run is slow.
+// What each agent actually did is shown afterwards in "How the agents worked".
+const SLOW_AFTER_S = 8;
+
+export function LoadingState({ llmMode }: { llmMode?: string | undefined }) {
+  const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setStep((s) => (s < 6 ? s + 1 : s)), 220);
+    const started = Date.now();
+    const id = setInterval(() => setElapsed(Math.floor((Date.now() - started) / 1000)), 1000);
     return () => clearInterval(id);
   }, []);
+  // With the model off there is nothing slow to wait for, so the hint would mislead.
+  const slow = elapsed >= SLOW_AFTER_S && llmMode !== "off";
   return (
-    <div className="space-y-5" aria-busy="true" aria-live="polite">
-      <div className="panel overflow-x-auto p-5">
-        <div className="eyebrow mb-2">Agents at work…</div>
-        <PipelineDiagram meta={meta} activeStep={step} />
+    <div className="space-y-5" aria-busy="true">
+      <div className="panel p-5">
+        <div className="flex items-baseline gap-2">
+          <span aria-live="polite" className="shimmer-text text-base font-semibold motion-reduce:animate-none">
+            Agents at work…
+          </span>
+          <span className="text-xs text-muted-foreground num">{elapsed}s</span>
+        </div>
+        <p aria-live="polite" className="mt-1 min-h-4 text-xs text-muted-foreground">
+          {slow ? "Waiting for the local model, which writes one explanation per unusual month and can take a while." : ""}
+        </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-36 rounded-xl" />)}
@@ -100,7 +114,7 @@ export function NarrowHint({ report }: { report: TrendReport }) {
   const tips: string[] = [];
   if (c?.price_band) tips.push("the budget");
   if (c?.sqft_range) tips.push("the size range");
-  if (c?.sale_cond) tips.push("the sale conditions");
+  if (c?.sale_cond) tips.push("the sale types");
   if (c?.bhk) tips.push("the BHK filter");
   if (c?.localities && c.localities.length < 3) tips.push("the locality list");
   return (

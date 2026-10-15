@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { BookOpen, Filter } from "lucide-react";
+import { Filter } from "lucide-react";
 import type { Criteria, RunRequest, TrendReport } from "@/lib/types";
 import { getHealth, getMeta, getUseMocks, NetworkError, runTrend, setUseMocks } from "@/lib/api";
 import { criteriaToForm, defaultForm, requestLabel, type FormState } from "@/lib/criteria";
 import { loadRecent, pushRecent, type RecentRun } from "@/lib/recent";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -20,14 +20,15 @@ import { Anomalies } from "@/components/plotline/Anomalies";
 import { AgentsPanel } from "@/components/plotline/AgentsPanel";
 import { ReproFooter } from "@/components/plotline/ReproFooter";
 import { LearnDrawer } from "@/components/plotline/LearnDrawer";
+import { ThemeToggle } from "@/components/plotline/ThemeToggle";
 import { EmptyState, ErrorPanel, LoadingState, NarrowHint, UnreachableBanner } from "@/components/plotline/States";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Plotline · Chennai housing price trends" },
+      { title: "Plotline · Housing price trends" },
       { name: "description", content: "Explore 12-month housing price trends across seven Chennai localities, and learn how to read them." },
-      { property: "og:title", content: "Plotline · Chennai housing price trends" },
+      { property: "og:title", content: "Plotline · Housing price trends" },
       { property: "og:description", content: "Median prices, ₹/sqft and the agent pipeline behind every number, for Chennai 2004–2015." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -94,7 +95,7 @@ function Plotline() {
 
   const rail = (
     <QueryRail meta={meta.data} health={health.data} form={form} setForm={setForm} tab={tab} setTab={setTab}
-      nl={nl} setNl={setNl} loading={run.isPending} onRun={doRun} recent={recent} />
+      nl={nl} setNl={setNl} loading={run.isPending} onRun={doRun} recent={recent} onLearn={() => setLearn(true)} />
   );
 
   const thin = report?.status === "ok" && (!report.summary || report.summary.n_rows === 0 ||
@@ -105,17 +106,12 @@ function Plotline() {
       <div className="min-h-screen">
         <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur">
           <div className="mx-auto flex h-14 max-w-[1440px] items-center gap-3 px-4 sm:px-6">
-            <div className="font-serif text-xl font-semibold tracking-tight">
-              Plotline <span className="text-muted-foreground">· Chennai</span>
-            </div>
+            <div className="font-serif text-xl font-semibold tracking-tight">Plotline</div>
             <div className="ml-auto flex items-center gap-2">
-              <HealthPill h={health.data} failed={health.isError} />
-              <Button variant="ghost" size="sm" onClick={() => setLearn(true)}>
-                <BookOpen className="mr-1.5 h-4 w-4" /> <span className="hidden sm:inline">How this works</span>
-              </Button>
               <Button variant="outline" size="sm" className="lg:hidden" onClick={() => setMobileFilters(true)}>
                 <Filter className="mr-1.5 h-4 w-4" /> Filters
               </Button>
+              <ThemeToggle />
             </div>
           </div>
         </header>
@@ -135,7 +131,7 @@ function Plotline() {
             ) : null}
 
             {run.isPending ? (
-              <LoadingState meta={meta.data} />
+              <LoadingState llmMode={health.data?.llm_mode} />
             ) : report ? (
               report.status === "error" ? (
                 <>
@@ -179,19 +175,5 @@ function Plotline() {
         <Toaster />
       </div>
     </TooltipProvider>
-  );
-}
-
-function HealthPill({ h, failed }: { h?: { llm_mode: string; contract_version: string; snapshot_sha256: string } | undefined; failed: boolean }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span tabIndex={0} className="inline-flex items-center gap-1.5 rounded-full border bg-card px-2.5 py-1 text-xs num">
-          <span className={`h-2 w-2 rounded-full ${h && !failed ? "bg-up" : "bg-warn"}`} />
-          {h ? `LLM: ${h.llm_mode} · v${h.contract_version}` : failed ? "Backend offline" : "Connecting…"}
-        </span>
-      </TooltipTrigger>
-      <TooltipContent className="font-mono text-[11px]">{h ? `snapshot ${h.snapshot_sha256}` : "Health check failed"}</TooltipContent>
-    </Tooltip>
   );
 }

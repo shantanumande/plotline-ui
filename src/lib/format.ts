@@ -57,3 +57,14 @@ export function windowMonths(end: string, n = 12): string[] {
   const e = monthIndex(end);
   return Array.from({ length: n }, (_, k) => monthFromIndex(e - (n - 1) + k));
 }
+
+// Sale conditions: plain labels for display. The dataset values (keys) are what the API sends and receives.
+const SALE_COND: Record<string, { label: string; hint: string }> = {
+  "Normal Sale": { label: "Normal sale", hint: "An ordinary sale between unrelated parties" },
+  AbNormal: { label: "Distress sale", hint: "Unusual circumstances, such as a forced or foreclosure sale" },
+  Family: { label: "Within family", hint: "Sold between family members" },
+  AdjLand: { label: "Neighbouring plot", hint: "The buyer bought the adjoining land" },
+  Partial: { label: "Under construction", hint: "The home wasn't finished at the time of sale" },
+};
+export const formatSaleCond = (v: string): string => SALE_COND[v]?.label ?? v;
+export const saleCondHint = (v: string): string | undefined => SALE_COND[v]?.hint;
