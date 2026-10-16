@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
@@ -21,6 +21,27 @@ export function recordIndex(report: TrendReport) {
   const m = new Map<string, TrendRecord>();
   report.records.forEach((r) => m.set(`${r.month}|${r.region_key}`, r));
   return m;
+}
+
+// The chart tooltip does not pop instantly: it waits for the pointer to settle first.
+const TOOLTIP_DELAY_MS = 1000;
+
+function DelayedTooltip({ active, payload, render }: {
+  active?: boolean | undefined;
+  payload?: { payload: Row }[] | undefined;
+  render: (p: { active?: boolean | undefined; payload?: { payload: Row }[] | undefined }) => ReactNode;
+}) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (!active) {
+      setReady(false);
+      return;
+    }
+    const t = setTimeout(() => setReady(true), TOOLTIP_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [active]);
+  if (!active || !payload?.length) return null;
+  return <>{render({ active: ready, payload })}</>;
 }
 
 const usePrefersReduced = () =>
@@ -95,7 +116,7 @@ export function TrendChart({
     );
   };
 
-  const TooltipBody = ({ active, payload }: { active?: boolean; payload?: { payload: Row }[] }) => {
+  const TooltipBody = ({ active, payload }: { active?: boolean | undefined; payload?: { payload: Row }[] | undefined }) => {
     if (!active || !payload?.length) return null;
     const row = payload[0]!.payload;
     const r = row.rec;
@@ -195,7 +216,10 @@ export function TrendChart({
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
                 <YAxis width={78} tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false}
                   tickFormatter={(v: number) => fmt(v)} domain={["auto", "auto"]} />
-                <Tooltip content={<TooltipBody />} cursor={{ stroke: "var(--border)" }} />
+                <Tooltip
+                  content={(p) => <DelayedTooltip active={p.active} payload={p.payload as { payload: Row }[] | undefined}
+                    render={(q) => <TooltipBody {...q} />} />}
+                  cursor={{ stroke: "var(--border)" }} />
                 {months.filter((m) => flagged.has(m)).map((m) => (
                   <ReferenceLine key={m} x={formatMonth(m, true)} stroke="var(--warn)" strokeDasharray="2 4"
                     label={{ value: "⚑", position: "top", fill: "var(--warn)", fontSize: 14 }} />
