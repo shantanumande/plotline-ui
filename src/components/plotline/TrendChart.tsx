@@ -27,9 +27,9 @@ export function recordIndex(report: TrendReport) {
 const TOOLTIP_DELAY_MS = 1000;
 
 function DelayedTooltip({ active, payload, render }: {
-  active?: boolean;
+  active?: boolean | undefined;
   payload?: { payload: Row }[] | undefined;
-  render: (p: { active?: boolean; payload?: { payload: Row }[] }) => ReactNode;
+  render: (p: { active?: boolean | undefined; payload?: { payload: Row }[] | undefined }) => ReactNode;
 }) {
   const [ready, setReady] = useState(false);
   useEffect(() => {
@@ -116,7 +116,7 @@ export function TrendChart({
     );
   };
 
-  const TooltipBody = ({ active, payload }: { active?: boolean; payload?: { payload: Row }[] }) => {
+  const TooltipBody = ({ active, payload }: { active?: boolean | undefined; payload?: { payload: Row }[] | undefined }) => {
     if (!active || !payload?.length) return null;
     const row = payload[0]!.payload;
     const r = row.rec;
