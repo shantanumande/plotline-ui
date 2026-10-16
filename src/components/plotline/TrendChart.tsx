@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
@@ -21,6 +21,27 @@ export function recordIndex(report: TrendReport) {
   const m = new Map<string, TrendRecord>();
   report.records.forEach((r) => m.set(`${r.month}|${r.region_key}`, r));
   return m;
+}
+
+// The chart tooltip does not pop instantly: it waits for the pointer to settle first.
+const TOOLTIP_DELAY_MS = 1000;
+
+function DelayedTooltip({ active, payload, render }: {
+  active?: boolean;
+  payload?: { payload: Row }[] | undefined;
+  render: (p: { active?: boolean; payload?: { payload: Row }[] }) => ReactNode;
+}) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (!active) {
+      setReady(false);
+      return;
+    }
+    const t = setTimeout(() => setReady(true), TOOLTIP_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [active]);
+  if (!active || !payload?.length) return null;
+  return <>{render({ active: ready, payload })}</>;
 }
 
 const usePrefersReduced = () =>
