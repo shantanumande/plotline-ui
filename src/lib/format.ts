@@ -9,7 +9,7 @@ export function formatINR(n: number | null | undefined, opts: { perSqft?: boolea
   if (opts.perSqft) return `₹${Math.round(n).toLocaleString("en-IN")}/sqft`;
   const sign = n < 0 ? MINUS : "";
   const a = Math.abs(n);
-  if (a >= CRORE) return `${sign}₹${(a / CRORE).toFixed(2)} Cr`;
+  if (a >= CRORE) return `${sign}₹${(a / CRORE).toFixed(1)} Cr`;
   if (a >= LAKH) return `${sign}₹${(a / LAKH).toFixed(1)} L`;
   return `${sign}₹${Math.round(a).toLocaleString("en-IN")}`;
 }
@@ -28,7 +28,7 @@ export function formatPct(fraction: number | null | undefined, digits = 1): stri
 }
 
 /** A value already in percent (−2.24) shown as −2.24 %. */
-export function formatPctPoints(pct: number | null | undefined, digits = 2): string {
+export function formatPctPoints(pct: number | null | undefined, digits = 1): string {
   if (pct == null || Number.isNaN(pct)) return "—";
   const s = pct > 0 ? "+" : pct < 0 ? MINUS : "";
   return `${s}${Math.abs(pct).toFixed(digits)} %`;
