@@ -216,7 +216,9 @@ export function TrendChart({
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
                 <YAxis width={78} tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false}
                   tickFormatter={(v: number) => fmt(v)} domain={["auto", "auto"]} />
-                <Tooltip content={(p) => <DelayedTooltip {...p} render={(q) => <TooltipBody {...q} />} />}
+                <Tooltip
+                  content={(p) => <DelayedTooltip active={p.active} payload={p.payload as { payload: Row }[] | undefined}
+                    render={(q) => <TooltipBody {...q} />} />}
                   cursor={{ stroke: "var(--border)" }} />
                 {months.filter((m) => flagged.has(m)).map((m) => (
                   <ReferenceLine key={m} x={formatMonth(m, true)} stroke="var(--warn)" strokeDasharray="2 4"
